@@ -1,3 +1,5 @@
+import 'dart:html';
+
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import '../helpers/gps.dart';
@@ -22,6 +24,14 @@ class _HomepageState extends State<Homepage> {
 
   @override
   Widget build(BuildContext context) {
+    Widget child;
+    if (_exception != null) {
+      child = Text("gps izni verilmedi!");
+    } else if (_userPosition == null) {
+      child = CircularProgressIndicator();
+    } else {
+      child = Text(_userPosition.toString());
+    }
     return Scaffold(
       body: Center(child: Text(_userPosition.toString())),
     );
@@ -32,6 +42,10 @@ class _HomepageState extends State<Homepage> {
     // TODO: implement initState
     super.initState();
 
-    _gps.startPositionStream(_handlePositionStream);
+    _gps.startPositionStream(_handlePositionStream).catchError((e) {
+      setState(() {
+        _exception = e;
+      });
+    });
   }
 }
