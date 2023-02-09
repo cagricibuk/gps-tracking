@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:geolocator/geolocator.dart';
 
 typedef PositionCallback = Function(Position position);
 
 class GPS {
+  late StreamSubscription<Position> _positionStream;
   isAccesGranted(LocationPermission permission) {
     return permission == LocationPermission.whileInUse ||
         permission == LocationPermission.always;
@@ -17,13 +20,20 @@ class GPS {
     return isAccesGranted(permission);
   }
 
-  startPositionStream(Function(Position position) callback) async {
+  Future<void> startPositionStream(Function(Position position) callback) async {
     bool permissionGranted = await requestPermission();
 
     if (!permissionGranted) {
       throw Exception("User did not grant gps perm!");
     }
 
-    Geolocator.getPositionStream().listen(callback);
+    _positionStream = Geolocator.getPositionStream(
+            locationSettings:
+                LocationSettings(accuracy: LocationAccuracy.bestForNavigation))
+        .listen(callback);
+  }
+
+  Future<void> stopPositionStream() async {
+    await _positionStream.cancel();
   }
 }
